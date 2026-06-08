@@ -1,0 +1,317 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator enums {
+  provider = "tsx ./prisma/enum-generator.ts"
+}
+
+model Admin {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  firstName String
+  lastName  String
+
+  username String @unique
+
+  phoneNo String
+  dob     DateTime
+  street  String
+  city    String
+  state   String
+  zip     String
+
+  email    String @unique
+  password String
+
+  role UserRole @default(ADMIN)
+
+  passwordResets PasswordReset[]
+  usernameResets UsernameReset[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Admin")
+}
+
+model Participant {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  firstName String
+  lastName  String
+
+  username String @unique
+
+  email    String   @unique
+  password String
+  phoneNo  String
+  dob      DateTime
+  street   String
+  city     String
+  state    String
+  zip      String
+
+  registrations     Registration[]
+  testRegistrations TestRegistration[]
+  payments          Payment[]
+
+  role UserRole @default(PARTICIPANT)
+
+  passwordResets PasswordReset[]
+  usernameResets UsernameReset[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Participant")
+}
+
+model Instructor {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  firstName String
+  lastName  String
+
+  username String @unique
+
+  email    String   @unique
+  password String
+  phoneNo  String
+  dob      DateTime
+  street   String
+  city     String
+  state    String
+  zip      String
+
+  ssn String
+
+  sessions Session[]
+
+  hasResetPassword Boolean @default(false)
+
+  role UserRole @default(INSTRUCTOR)
+
+  passwordResets PasswordReset[]
+  usernameResets UsernameReset[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Instructor")
+}
+
+model InstructorRegistrationRequest {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  firstName String
+  lastName  String
+  username  String   @unique
+  email     String   @unique
+  password  String
+  street    String
+  city      String
+  state     String
+  zipCode   String
+  dob       DateTime
+  phone     String
+
+  ssn String
+
+  status String @default("PENDING")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("instructor_registration_requests")
+}
+
+model PasswordReset {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  user          Participant? @relation(fields: [participantId], references: [id])
+  participantId String?      @db.ObjectId
+
+  admin   Admin?  @relation(fields: [adminId], references: [id])
+  adminId String? @db.ObjectId
+
+  instructor   Instructor? @relation(fields: [instructorId], references: [id])
+  instructorId String?     @db.ObjectId
+
+  token String
+  used  Boolean @default(false)
+
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([participantId])
+  @@index([adminId])
+  @@index([instructorId])
+}
+
+model UsernameReset {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  participant   Participant? @relation(fields: [participantId], references: [id])
+  participantId String?      @db.ObjectId
+
+  admin   Admin?  @relation(fields: [adminId], references: [id])
+  adminId String? @db.ObjectId
+
+  instructor   Instructor? @relation(fields: [instructorId], references: [id])
+  instructorId String?     @db.ObjectId
+
+  token String
+  used  Boolean @default(false)
+
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([participantId])
+  @@index([adminId])
+  @@index([instructorId])
+  @@map("username_resets")
+}
+
+model Workshop {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  venue       String
+  startDate   DateTime
+  endDate     DateTime
+  capacity    Int
+  price       Float?
+
+  workshopType WorkshopType
+
+  sessions Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Workshop")
+}
+
+model Session {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+
+  date      DateTime
+  startTime DateTime
+  endTime   DateTime
+
+  tests Test[]
+
+  workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  workshopId String   @db.ObjectId
+
+  instructor   Instructor? @relation(fields: [instructorId], references: [id])
+  instructorId String?     @db.ObjectId
+
+  registrations Registration[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Session")
+}
+
+model Registration {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  participantId String      @db.ObjectId
+
+  session   Session? @relation(fields: [sessionId], references: [id])
+  sessionId String?  @db.ObjectId
+
+  payment Payment?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Registration")
+}
+
+model Payment {
+  id     String        @id @default(auto()) @map("_id") @db.ObjectId
+  amount Float
+  method PaymentMethod
+
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  participantId String      @db.ObjectId
+
+  reservation   Registration @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  reservationId String       @unique @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Payment")
+}
+
+model Test {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  date        DateTime
+  startTime   DateTime
+  endTime     DateTime
+  venue       String
+  capacity    Int
+  questions   String[]
+
+  status TestStatus @default(PENDING)
+
+  registrations TestRegistration[]
+
+  session   Session? @relation(fields: [sessionId], references: [id])
+  sessionId String?  @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Test")
+}
+
+model TestRegistration {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  participantId String      @db.ObjectId
+
+  test   Test   @relation(fields: [testId], references: [id])
+  testId String @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("TestRegistration")
+}
+
+enum UserRole {
+  ADMIN
+  INSTRUCTOR
+  PARTICIPANT
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  CASH
+}
+
+enum WorkshopType {
+  PAID
+  FREE
+}
+
+enum TestStatus {
+  PENDING
+  COMPLETED
+}
