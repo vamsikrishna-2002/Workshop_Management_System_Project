@@ -1,9 +1,9 @@
 # Workshop_Management_System_Project  
 The Workshop Management System is a web-based platform designed to simplify the organization, management, and participation of computer science workshops. The system supports three user roles: Admin, Organizer, and Participant, each with dedicated functionalities for efficient workshop management.
 
-Key Features
-###Workshop Management: Create, update, and manage workshops with details such as schedules, capacity, pricing, and skill requirements.  
-User Registration: Secure user accounts with workshop enrollment for both free and paid events.  
+*Key Features*:  
+*Workshop Management*: Create, update, and manage workshops with details such as schedules, capacity, pricing, and skill requirements.  
+*User Registration*: Secure user accounts with workshop enrollment for both free and paid events.  
 Payment Processing: Integrated payment system with transaction history, invoices, receipts, and refund management.  
 Advanced Search & Filtering: Discover workshops based on programming languages, technologies, and computer science topics.  
 Organizer Dashboard: Manage workshops, participant registrations, materials, schedules, and workshop resources.  
